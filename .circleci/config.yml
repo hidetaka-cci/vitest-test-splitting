@@ -5,10 +5,10 @@ orbs:
 
 jobs:
   test:
-    docker:
-      - image: cimg/node:22.14
+    executor:
+      name: node/default
     resource_class: medium
-    parallelism: 4
+    parallelism: 8
     steps:
       - checkout
       - node/install-packages:
@@ -17,17 +17,18 @@ jobs:
           name: Create test results directory
           command: mkdir -p test-results
       - run:
-          name: Run tests with split
+          name: Run tests with split (no halt guard)
           command: |
             TESTFILES=$(circleci tests glob "src/**/*.test.ts" | circleci tests split --split-by=timings)
             echo "Container ${CIRCLE_NODE_INDEX}/${CIRCLE_NODE_TOTAL}"
             echo "Assigned test files:"
             echo "$TESTFILES"
-            if [ -z "$TESTFILES" ]; then
-              echo "No tests assigned to this container, halting."
-              circleci-agent step halt
+            if [ -n "$TESTFILES" ]; then
+              echo "$TESTFILES" | tr ' ' '\n' | xargs npx vitest run
+            else
+              echo "No tests assigned — running full suite (no halt guard)."
+              npx vitest run
             fi
-            echo "$TESTFILES" | tr ' ' '\n' | xargs npx vitest run
       - store_test_results:
           path: test-results
       - store_artifacts:
