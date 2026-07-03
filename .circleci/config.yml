@@ -1,23 +1,21 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@7.2.1
-
 jobs:
   test:
-    executor:
-      name: node/default
+    docker:
+      - image: cimg/node:22.14
     resource_class: medium
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
+      - run:
+          name: Install dependencies
+          command: npm ci
       - run:
           name: Create test results directory
           command: mkdir -p test-results
       - run:
           name: Run all tests (no split)
-          command: npx vitest run
+          command: CI=true npx vitest run
       - store_test_results:
           path: test-results
       - store_artifacts:
