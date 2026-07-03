@@ -1,21 +1,34 @@
 version: 2.1
 
+orbs:
+  node: circleci/node@7.2.1
+
 jobs:
   test:
     docker:
       - image: cimg/node:22.14
     resource_class: medium
+    parallelism: 4
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: npm ci
+      - node/install-packages:
+          pkg-manager: npm
       - run:
           name: Create test results directory
           command: mkdir -p test-results
       - run:
-          name: Run all tests (no split)
-          command: CI=true npx vitest run
+          name: Run tests with split
+          command: |
+            TESTFILES=$(circleci tests glob "src/**/*.test.ts" | \
+              circleci tests split --split-by=timings --timings-type=filename)
+            echo "Container ${CIRCLE_NODE_INDEX}/${CIRCLE_NODE_TOTAL}"
+            echo "Assigned test files:"
+            echo "$TESTFILES"
+            if [ -z "$TESTFILES" ]; then
+              echo "No tests assigned to this container, halting."
+              circleci-agent step halt
+            fi
+            echo "$TESTFILES" | tr ' ' '\n' | xargs npx vitest run
       - store_test_results:
           path: test-results
       - store_artifacts:

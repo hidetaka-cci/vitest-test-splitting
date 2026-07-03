@@ -5,8 +5,8 @@ orbs:
 
 jobs:
   test:
-    executor:
-      name: node/default
+    docker:
+      - image: cimg/node:22.14
     resource_class: medium
     steps:
       - checkout
@@ -17,7 +17,7 @@ jobs:
           command: mkdir -p test-results
       - run:
           name: Run all tests (no split)
-          command: npx vitest run
+          command: CI=true npx vitest run
       - store_test_results:
           path: test-results
       - store_artifacts:
