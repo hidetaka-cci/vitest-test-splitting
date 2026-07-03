@@ -9,6 +9,8 @@ jobs:
       - image: cimg/node:22.14
     resource_class: medium
     parallelism: 4
+    environment:
+      VITEST_JUNIT_ADD_FILE_ATTRIBUTE: "false"
     steps:
       - checkout
       - node/install-packages:
