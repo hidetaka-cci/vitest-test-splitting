@@ -1,0 +1,40 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@7.2.1
+
+jobs:
+  test:
+    executor:
+      name: node/default
+    resource_class: medium
+    parallelism: 8
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Create test results directory
+          command: mkdir -p test-results
+      - run:
+          name: Run tests with split (with halt guard)
+          command: |
+            TESTFILES=$(circleci tests glob "src/**/*.test.ts" | circleci tests split --split-by=timings)
+            echo "Container ${CIRCLE_NODE_INDEX}/${CIRCLE_NODE_TOTAL}"
+            echo "Assigned test files:"
+            echo "$TESTFILES"
+            if [ -z "$TESTFILES" ]; then
+              echo "No tests assigned to this container, halting."
+              circleci-agent step halt
+            fi
+            echo "$TESTFILES" | tr ' ' '\n' | xargs npx vitest run
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+workflows:
+  verify:
+    jobs:
+      - test

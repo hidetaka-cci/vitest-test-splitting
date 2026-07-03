@@ -1,0 +1,30 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@7.2.1
+
+jobs:
+  test:
+    executor:
+      name: node/default
+    resource_class: medium
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Create test results directory
+          command: mkdir -p test-results
+      - run:
+          name: Run all tests (no split)
+          command: npx vitest run
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+workflows:
+  verify:
+    jobs:
+      - test
