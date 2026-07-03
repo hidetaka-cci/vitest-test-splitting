@@ -8,7 +8,7 @@ jobs:
     executor:
       name: node/default
     resource_class: medium
-    parallelism: 8
+    parallelism: 10
     steps:
       - checkout
       - node/install-packages:
