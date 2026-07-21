@@ -8,7 +8,7 @@ jobs:
     docker:
       - image: cimg/node:22.14
     resource_class: medium
-    parallelism: 4
+    parallelism: 2
     steps:
       - checkout
       - node/install-packages:
